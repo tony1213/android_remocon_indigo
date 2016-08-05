@@ -251,8 +251,7 @@ public class AppLauncher {
                     result = Result.NOT_INSTALLED;
                 }
             }
-        }
-        {
+        }else {
             result = Result.NOT_INSTALLED;
         }
         return result;
