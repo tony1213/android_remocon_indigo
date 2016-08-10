@@ -361,7 +361,7 @@ public class MasterChooser extends Activity {
 			button.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					searchMasterClicked(v);
+					searchMasterClicked();
 				}
 			});
 
@@ -546,7 +546,8 @@ public class MasterChooser extends Activity {
 	}
 
 	public void addMasterClicked(View view) {
-		showDialog(ADD_URI_DIALOG_ID);
+		searchMasterClicked();
+//		showDialog(ADD_URI_DIALOG_ID);
 	}
 
 	public void refreshClicked(View view) {
@@ -567,7 +568,7 @@ public class MasterChooser extends Activity {
         startActivityForResult(i, NFC_TAG_SCAN_REQUEST_CODE);
     }
 
-	public void searchMasterClicked(View view) {
+	public void searchMasterClicked() {
 		removeDialog(ADD_URI_DIALOG_ID);
 		showDialog(ADD_SEARCH_CONCERT_DIALOG_ID);
 
