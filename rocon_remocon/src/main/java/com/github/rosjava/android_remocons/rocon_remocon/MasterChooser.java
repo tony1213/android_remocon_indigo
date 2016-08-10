@@ -332,32 +332,31 @@ public class MasterChooser extends Activity {
 		case ADD_URI_DIALOG_ID:
 			dialog = new Dialog(this);
 			dialog.setContentView(R.layout.add_uri_dialog);
-			dialog.setTitle("Add a Master");
+			dialog.setTitle("添加Master");
 			dialog.setOnKeyListener(new DialogKeyListener());
-			EditText uriField = (EditText) dialog.findViewById(R.id.uri_editor);
-			uriField.setText("http://localhost:11311/",
-					TextView.BufferType.EDITABLE);
-			button = (Button) dialog.findViewById(R.id.enter_button);
-			button.setOnClickListener(new View.OnClickListener() {
-				public void onClick(View v) {
-					enterMasterInfo(dialog);
-					removeDialog(ADD_URI_DIALOG_ID);
-				}
-			});
-            button = (Button) dialog.findViewById(R.id.qr_code_button);
-            button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    scanQRCodeClicked(v);
-                }
-            });
-            button = (Button) dialog.findViewById(R.id.nfc_tag_button);
-            button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    scanNFCTagClicked(v);
-                }
-            });
+//			EditText uriField = (EditText) dialog.findViewById(R.id.uri_editor);
+//			uriField.setText("http://localhost:11311/", TextView.BufferType.EDITABLE);
+//			button = (Button) dialog.findViewById(R.id.enter_button);
+//			button.setOnClickListener(new View.OnClickListener() {
+//				public void onClick(View v) {
+//					enterMasterInfo(dialog);
+//					removeDialog(ADD_URI_DIALOG_ID);
+//				}
+//			});
+//            button = (Button) dialog.findViewById(R.id.qr_code_button);
+//            button.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    scanQRCodeClicked(v);
+//                }
+//            });
+//            button = (Button) dialog.findViewById(R.id.nfc_tag_button);
+//            button.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    scanNFCTagClicked(v);
+//                }
+//            });
 			button = (Button) dialog.findViewById(R.id.search_master_button);
 			button.setOnClickListener(new View.OnClickListener() {
 				@Override
@@ -366,13 +365,13 @@ public class MasterChooser extends Activity {
 				}
 			});
 
-			button = (Button) dialog.findViewById(R.id.cancel_button);
-			button.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					removeDialog(ADD_URI_DIALOG_ID);
-				}
-			});
+//			button = (Button) dialog.findViewById(R.id.cancel_button);
+//			button.setOnClickListener(new View.OnClickListener() {
+//				@Override
+//				public void onClick(View v) {
+//					removeDialog(ADD_URI_DIALOG_ID);
+//				}
+//			});
 			break;
 		case ADD_DELETION_DIALOG_ID:
 			builder = new AlertDialog.Builder(this);
@@ -413,13 +412,13 @@ public class MasterChooser extends Activity {
 			break;
 		case ADD_SEARCH_CONCERT_DIALOG_ID:
 			builder = new AlertDialog.Builder(this);
-			builder.setTitle("Scanning on the local network...");
+			builder.setTitle("局域网搜索...");
 			LayoutInflater layoutInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			listView = (ListView) layoutInflater.inflate(R.layout.zeroconf_master_list, null);
 			masterSearcher = new MasterSearcher(this, listView, "concert-master", R.drawable.conductor, R.drawable.turtle);
 			builder.setView(listView);
-			builder.setPositiveButton("Select", new SearchMasterDialogButtonClickHandler());
-			builder.setNegativeButton("Cancel", new SearchMasterDialogButtonClickHandler());
+			builder.setPositiveButton("选择", new SearchMasterDialogButtonClickHandler());
+			builder.setNegativeButton("取消", new SearchMasterDialogButtonClickHandler());
 			dialog = builder.create();
 			dialog.setOnKeyListener(new DialogKeyListener());
 			break;
