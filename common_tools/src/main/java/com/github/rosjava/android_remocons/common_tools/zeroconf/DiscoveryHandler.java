@@ -18,6 +18,7 @@ package com.github.rosjava.android_remocons.common_tools.zeroconf;
 
 import android.annotation.SuppressLint;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.github.rosjava.zeroconf_jmdns_suite.jmdns.DiscoveredService;
 import com.github.rosjava.zeroconf_jmdns_suite.jmdns.ZeroconfDiscoveryHandler;
@@ -94,7 +95,14 @@ public class DiscoveryHandler implements ZeroconfDiscoveryHandler {
                 }
                 if (index == discovered_services.size()) {
                     discovered_services.add(discovered_service);
-                    discovery_adapter.notifyDataSetChanged();
+                    android.util.Log.e("MasterListSize", "size:" + discovered_services.size());
+                    if (discovered_services.size()==0){
+                        return;
+                    }
+                    for (int i = 0; i < discovered_services.size(); i++) {
+                        android.util.Log.e("MasterListSize", "name:" + discovered_services.get(i).name + ",Type:" + discovered_services.get(i).type + ",domain:" + discovered_services.get(i).domain + ",description:" + discovered_services.get(i).description + ",hostname:" + discovered_services.get(i).hostname + ",port:" + discovered_services.get(i).port + ",ipv4:" + discovered_services.get(i).ipv4_addresses);
+                    }
+//                    discovery_adapter.notifyDataSetChanged();
                 } else {
                     android.util.Log.i("zeroconf", "Tried to add an existing service (fix this)");
                 }
@@ -133,7 +141,15 @@ public class DiscoveryHandler implements ZeroconfDiscoveryHandler {
                 }
                 if (index != discovered_services.size()) {
                     discovered_services.remove(index);
-                    discovery_adapter.notifyDataSetChanged();
+                    android.util.Log.e("MasterListSize", "size:" + discovered_services.size());
+                    if (discovered_services.size()==0){
+                        return;
+                    }
+                    for (int i = 0; i < discovered_services.size(); i++) {
+                        android.util.Log.e("MasterListSize", "name:" + discovered_services.get(i).name + ",Type:" + discovered_services.get(i).type + ",domain:" + discovered_services.get(i).domain + ",description:" + discovered_services.get(i).description + ",hostname:" + discovered_services.get(i).hostname + ",port:" + discovered_services.get(i).port + ",ipv4:" + discovered_services.get(i).ipv4_addresses);
+
+                    }
+//                    discovery_adapter.notifyDataSetChanged();
                 } else {
                     android.util.Log.i("zeroconf", "Tried to remove a non-existant service");
                 }
@@ -156,6 +172,10 @@ public class DiscoveryHandler implements ZeroconfDiscoveryHandler {
      */
     public DiscoveryHandler(DiscoveryAdapter discovery_adapter, ArrayList<DiscoveredService> discovered_services) {
         this.discovery_adapter = discovery_adapter;
+        this.discovered_services = discovered_services;
+    }
+
+    public DiscoveryHandler(ArrayList<DiscoveredService> discovered_services) {
         this.discovered_services = discovered_services;
     }
 

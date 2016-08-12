@@ -39,8 +39,7 @@ public class MasterSearcher {
 
         discoveredMasters = new ArrayList<DiscoveredService>();
 
-        discoveryAdapter = new DiscoveryAdapter(context, discoveredMasters,
-                                 targetServiceName, targetServiceDrawable, otherServicesDrawable);
+        discoveryAdapter = new DiscoveryAdapter(context, discoveredMasters, targetServiceName, targetServiceDrawable, otherServicesDrawable);
         listView.setAdapter(discoveryAdapter);
         listView.setItemsCanFocus(false);
         listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
@@ -52,6 +51,31 @@ public class MasterSearcher {
 
         new DiscoverySetup(context).execute(zeroconf);
     }
+
+    public MasterSearcher(Context context,  String targetServiceName, int targetServiceDrawable, int otherServicesDrawable) {
+
+        discoveredMasters = new ArrayList<DiscoveredService>();
+        discoveryAdapter = new DiscoveryAdapter(context, discoveredMasters, targetServiceName, targetServiceDrawable, otherServicesDrawable);
+        logger = new Logger();
+        zeroconf = new Zeroconf(logger);
+        discoveryHandler = new DiscoveryHandler(discoveryAdapter, discoveredMasters);
+        zeroconf.setDefaultDiscoveryCallback(discoveryHandler);
+
+        new DiscoverySetup(context).execute(zeroconf);
+    }
+
+    public MasterSearcher() {
+
+        discoveredMasters = new ArrayList<DiscoveredService>();
+//        discoveryAdapter = new DiscoveryAdapter(context, discoveredMasters, targetServiceName, targetServiceDrawable, otherServicesDrawable);
+        logger = new Logger();
+        zeroconf = new Zeroconf(logger);
+        discoveryHandler = new DiscoveryHandler(discoveredMasters);
+        zeroconf.setDefaultDiscoveryCallback(discoveryHandler);
+
+        new DiscoverySetup().execute(zeroconf);
+    }
+
 
     public void shutdown() {
         try {

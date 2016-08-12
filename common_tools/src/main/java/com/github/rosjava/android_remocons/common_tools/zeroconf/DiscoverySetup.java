@@ -30,7 +30,11 @@ import com.github.rosjava.zeroconf_jmdns_suite.jmdns.Zeroconf;
 public class DiscoverySetup extends AsyncTask<Zeroconf, String, Void> {
 
     private ProgressDialog commencing_dialog;
-    private final Context context;
+    private Context context;
+
+    public DiscoverySetup() {
+
+    }
 
     public DiscoverySetup(Context context) {
         this.context = context;

@@ -69,8 +69,12 @@ import android.widget.Toast;
 import com.github.rosjava.android_remocons.common_tools.master.MasterId;
 import com.github.rosjava.android_remocons.common_tools.master.RoconDescription;
 import com.github.rosjava.android_remocons.common_tools.nfc.NfcReaderActivity;
+import com.github.rosjava.android_remocons.common_tools.zeroconf.DiscoveryHandler;
+import com.github.rosjava.android_remocons.common_tools.zeroconf.DiscoverySetup;
+import com.github.rosjava.android_remocons.common_tools.zeroconf.Logger;
 import com.github.rosjava.android_remocons.common_tools.zeroconf.MasterSearcher;
 import com.github.rosjava.zeroconf_jmdns_suite.jmdns.DiscoveredService;
+import com.github.rosjava.zeroconf_jmdns_suite.jmdns.Zeroconf;
 import com.google.zxing.IntentIntegrator;
 import com.google.zxing.IntentResult;
 
@@ -361,7 +365,10 @@ public class MasterChooser extends Activity {
 			button.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					searchMasterClicked();
+					masterSearcher=new MasterSearcher();
+//					searchMasterClicked();
+//					masterSearcher = new MasterSearcher(MasterChooser.this, "concert-master", R.drawable.conductor, R.drawable.turtle);
+
 				}
 			});
 
@@ -415,7 +422,9 @@ public class MasterChooser extends Activity {
 			builder.setTitle("局域网搜索...");
 			LayoutInflater layoutInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			listView = (ListView) layoutInflater.inflate(R.layout.zeroconf_master_list, null);
-			masterSearcher = new MasterSearcher(this, listView, "concert-master", R.drawable.conductor, R.drawable.turtle);
+
+//			masterSearcher = new MasterSearcher(this, listView, "concert-master", R.drawable.conductor, R.drawable.turtle);
+			masterSearcher=new MasterSearcher();
 			builder.setView(listView);
 			builder.setPositiveButton("选择", new SearchMasterDialogButtonClickHandler());
 			builder.setNegativeButton("取消", new SearchMasterDialogButtonClickHandler());
@@ -456,13 +465,10 @@ public class MasterChooser extends Activity {
 		public void onClick(DialogInterface dialog, int clicked) {
 			switch (clicked) {
 			case DialogInterface.BUTTON_POSITIVE:
-				SparseBooleanArray positions = listView
-						.getCheckedItemPositions();
-
+				SparseBooleanArray positions = listView.getCheckedItemPositions();
 				for (int i = 0; i < positions.size(); i++) {
 					if (positions.valueAt(i)) {
-						enterMasterInfo((DiscoveredService) listView.getAdapter()
-                                .getItem(positions.keyAt(i)));
+						enterMasterInfo((DiscoveredService) listView.getAdapter().getItem(positions.keyAt(i)));
 					}
 				}
 				removeDialog(ADD_DELETION_DIALOG_ID);
@@ -546,7 +552,8 @@ public class MasterChooser extends Activity {
 	}
 
 	public void addMasterClicked(View view) {
-		searchMasterClicked();
+//		searchMasterClicked();
+		masterSearcher=new MasterSearcher();
 //		showDialog(ADD_URI_DIALOG_ID);
 	}
 
