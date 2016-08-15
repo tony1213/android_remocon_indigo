@@ -66,11 +66,27 @@ public class MasterItem implements ConcertChecker.ConcertDescriptionReceiver,
     private View view;
     private RoconDescription description;
     private MasterChooser parentMca;
+    private MasterChooserService parentMca2;
     private String errorReason;
 
     public MasterItem(RoconDescription roconDescription, MasterChooser parentMca) {
         errorReason = "";
         this.parentMca = parentMca;
+        this.description = roconDescription;
+        this.description.setConnectionStatus(RoconDescription.CONNECTING);
+        if (WifiChecker.wifiValid(this.description.getMasterId(),
+                (WifiManager) parentMca.getSystemService(parentMca.WIFI_SERVICE))) {
+            checker = new ConcertChecker(this, this);
+            checker.beginChecking(this.description.getMasterId());
+        } else {
+            errorReason = "Wrong WiFi Network";
+            description.setConnectionStatus(RoconDescription.WIFI);
+            safePopulateView();
+        }
+    }
+    public MasterItem(RoconDescription roconDescription, MasterChooserService parentMca) {
+        errorReason = "";
+        this.parentMca2 = parentMca;
         this.description = roconDescription;
         this.description.setConnectionStatus(RoconDescription.CONNECTING);
         if (WifiChecker.wifiValid(this.description.getMasterId(),

@@ -37,8 +37,11 @@
 package com.github.rosjava.android_remocons.rocon_remocon;
 
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
@@ -184,9 +187,19 @@ public class Remocon extends RosActivity {
         super.onCreate(savedInstanceState);
         Log.i("[Remocon]", "Oncreate");
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                             WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.rocon_remocon);
+
+
+        IntentFilter filter=new IntentFilter();
+        filter.addAction("com.robot.et.rocon");
+        registerReceiver(receiver, filter);
+
+
+
+
+
+
 		concertNameView = (TextView) findViewById(R.id.concert_name_view);
         // Prepare the app manager; we do here instead of on init to keep using the same instance when switching roles
         interactionsManager = new InteractionsManager(
@@ -330,6 +343,22 @@ public class Remocon extends RosActivity {
         pairSubscriber.setAppHash(0);
 	}
 
+
+
+    BroadcastReceiver receiver=new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals("com.robot.et.rocon")){
+                Log.e("MasterChooserService","接收到数据");
+                roconDescription=(RoconDescription)intent.getSerializableExtra("RoconDescription");
+                init2(roconDescription);
+            }
+        }
+    };
+
+
+
+
     /**
      * This gets processed as soon as the application returns it
      * with a uri - this is either as a result of the master chooser
@@ -344,6 +373,7 @@ public class Remocon extends RosActivity {
      */
 	@Override
 	protected void init(final NodeMainExecutor nodeMainExecutor) {
+        Log.e("MasterChooserService","init(final NodeMainExecutor nodeMainExecutor)");
         try {
             java.net.Socket socket = new java.net.Socket(getMasterUri().getHost(), getMasterUri().getPort());
             java.net.InetAddress local_network_address = socket.getLocalAddress();
@@ -353,6 +383,7 @@ public class Remocon extends RosActivity {
             interactionsManager.init(roconDescription.getInteractionsNamespace());
             interactionsManager.getAppsForRole(roconDescription.getMasterId(), roconDescription.getCurrentRole());
             interactionsManager.setRemoconName(statusPublisher.REMOCON_FULL_NAME);
+            Log.e("MasterChooserService","init(final NodeMainExecutor nodeMainExecutor)2");
             progressDialog.show("Getting apps...",
                     "Retrieving interactions for the '" + roconDescription.getCurrentRole() + "' role");
             //execution of publisher
@@ -426,36 +457,95 @@ public class Remocon extends RosActivity {
         }
     }
 
-    private void chooseRole() {
-        Log.i("Remocon", "concert chosen; show choose user role dialog");
-        roconDescription.setCurrentRole(-1);
+    void init2(RoconDescription roconDescription) {
+        Log.e("MasterChooserService","init2");
+        URI uri;
+        try {
+//            roconDescription = (RoconDescription) intent.getSerializableExtra(RoconDescription.UNIQUE_KEY);
+            validatedConcert = false;
+            validateConcert(roconDescription.getMasterId());
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(Remocon.this);
-        builder.setTitle("Choose your role");
-        builder.setSingleChoiceItems(roconDescription.getUserRoles(), -1,
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int selectedRole) {
-                        roconDescription.setCurrentRole(selectedRole);
-                        String role = roconDescription.getCurrentRole();
-                        Toast.makeText(Remocon.this, role + " selected", Toast.LENGTH_SHORT).show();
-                        dialog.dismiss();
-
-                        new AsyncTask<Void, Void, Void>() {
-                            @Override
-                            protected Void doInBackground(Void... params) {
-                                while (!validatedConcert) {
-                                    // should use a sleep here to avoid burnout
-                                    try { Thread.sleep(200); } catch (InterruptedException e) { e.printStackTrace(); }
-                                }
-                                Remocon.this.init(nodeMainExecutorService);
-                                return null;
-                            }
-                        }.execute();
+            uri = new URI(roconDescription.getMasterId().getMasterUri());
+            Log.i("MasterChooserService", "init(Intent) - master uri is " + uri.toString());
+        } catch (ClassCastException e) {
+            Log.e("MasterChooserService", "Cannot get concert description from intent. " + e.getMessage());
+            throw new RosRuntimeException(e);
+        } catch (URISyntaxException e) {
+            throw new RosRuntimeException(e);
+        }
+        nodeMainExecutorService.setMasterUri(uri);
+        // Run init() in a new thread as a convenience since it often
+        // requires network access. This would be more robust if it
+        // had a failure handler for uncontactable errors (override
+        // onPostExecute) that occurred when calling init. In reality
+        // this shouldn't happen often - only when the connection
+        // is unavailable inbetween validating and init'ing.
+        if (roconDescription.getCurrentRole() == null) {
+            chooseRole();
+        }
+        else {
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... params) {
+                    while (!validatedConcert) {
+                        // should use a sleep here to avoid burnout
+                        try { Thread.sleep(200); } catch (InterruptedException e) { e.printStackTrace(); }
                     }
-                });
-        AlertDialog alert = builder.create();
-        alert.show();
+                    Log.i("MasterChooserService", "init(Intent) passing control back to init(nodeMainExecutorService)");
+                    Remocon.this.init(nodeMainExecutorService);
+                    return null;
+                }
+            }.execute();
+        }
+    }
+
+    private void chooseRole() {
+        Log.i("MasterChooserService", "concert chosen; show choose user role dialog");
+//        roconDescription.setCurrentRole(-1);
+//        CharSequence[] items=roconDescription.getUserRoles();
+//        for (int i=0;i<items.length;i++){
+//            Log.d("MasterChooserService", "role:"+items[i]);
+//        }
+        roconDescription.setCurrentRole(0);
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... params) {
+                while (!validatedConcert) {
+                    // should use a sleep here to avoid burnout
+                    try { Thread.sleep(200); } catch (InterruptedException e) { e.printStackTrace(); }
+                }
+                Remocon.this.init(nodeMainExecutorService);
+                return null;
+            }
+        }.execute();
+
+
+//        AlertDialog.Builder builder = new AlertDialog.Builder(Remocon.this);
+//        builder.setTitle("Choose your role");
+//        builder.setSingleChoiceItems(roconDescription.getUserRoles(), -1,
+//                new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int selectedRole) {
+//                        roconDescription.setCurrentRole(selectedRole);
+//                        String role = roconDescription.getCurrentRole();
+//                        Toast.makeText(Remocon.this, role + " selected", Toast.LENGTH_SHORT).show();
+//                        dialog.dismiss();
+//
+//                        new AsyncTask<Void, Void, Void>() {
+//                            @Override
+//                            protected Void doInBackground(Void... params) {
+//                                while (!validatedConcert) {
+//                                    // should use a sleep here to avoid burnout
+//                                    try { Thread.sleep(200); } catch (InterruptedException e) { e.printStackTrace(); }
+//                                }
+//                                Remocon.this.init(nodeMainExecutorService);
+//                                return null;
+//                            }
+//                        }.execute();
+//                    }
+//                });
+//        AlertDialog alert = builder.create();
+//        alert.show();
     }
 
     /**
@@ -496,11 +586,14 @@ public class Remocon extends RosActivity {
      */
 	@Override
 	public void startMasterChooser() {
-		if (!fromApplication && !fromNfcLauncher) {
-			super.startActivityForResult(new Intent(this,
-					MasterChooser.class),
-					CONCERT_MASTER_CHOOSER_REQUEST_CODE);
-        }
+        Log.e("MasterChooserService","开始执行MasterChooserService");
+        startService(new Intent(this, MasterChooserService.class));
+
+//		if (!fromApplication && !fromNfcLauncher) {
+//			super.startActivityForResult(new Intent(this,
+//					MasterChooser.class),
+//					CONCERT_MASTER_CHOOSER_REQUEST_CODE);
+//        }
 	}
 
 	public void validateConcert(final MasterId id) {
@@ -587,25 +680,34 @@ public class Remocon extends RosActivity {
 	}
 
 	protected void updateAppList(final ArrayList<Interaction> apps, final String master_name, final String role) {
-		Log.d("Remocon", "updating app list gridview");
         selectedInteraction = null;
-        concertNameView.setText(master_name + " - " + role);
-		GridView gridview = (GridView) findViewById(R.id.gridview);
-		AppAdapter appAdapter = new AppAdapter(Remocon.this, apps);
-		gridview.setAdapter(appAdapter);
-		registerForContextMenu(gridview);
-		gridview.setOnItemClickListener(new OnItemClickListener() {
-			@Override
-			public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-                selectedInteraction = apps.get(position);
-                progressDialog.show("Requesting app...", "Requesting permission to use "
-                                   + selectedInteraction.getDisplayName());
+        for (int i=0;i<apps.size();i++){
+            Log.e("MasterChooserService", "InteractionDisplayName:"+apps.get(i).getDisplayName());
+            if (apps.get(i).getDisplayName().equals("Random Walker")){
+                selectedInteraction = apps.get(i);
                 interactionsManager.requestAppUse(roconDescription.getMasterId(), role, selectedInteraction);
                 statusPublisher.update(true, selectedInteraction.getHash(), selectedInteraction.getName());
-
-			}
-		});
-		Log.d("Remocon", "app list gridview updated");
+            }
+        }
+//        selectedInteraction = null;
+//        concertNameView.setText(master_name + " - " + role);
+//		GridView gridview = (GridView) findViewById(R.id.gridview);
+//		AppAdapter appAdapter = new AppAdapter(Remocon.this, apps);
+//		gridview.setAdapter(appAdapter);
+//		registerForContextMenu(gridview);
+//		gridview.setOnItemClickListener(new OnItemClickListener() {
+//			@Override
+//			public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+//                Log.e("MasterChooserService","点击的position："+position);
+//                selectedInteraction = apps.get(position);
+//                progressDialog.show("Requesting app...", "Requesting permission to use "
+//                                   + selectedInteraction.getDisplayName());
+//                interactionsManager.requestAppUse(roconDescription.getMasterId(), role, selectedInteraction);
+//                statusPublisher.update(true, selectedInteraction.getHash(), selectedInteraction.getName());
+//
+//			}
+//		});
+//		Log.d("Remocon", "app list gridview updated");
 	}
 
     /**
@@ -654,4 +756,9 @@ public class Remocon extends RosActivity {
         leaveConcertClicked(null);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(receiver);
+    }
 }
