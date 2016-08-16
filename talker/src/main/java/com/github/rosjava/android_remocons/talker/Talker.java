@@ -1,4 +1,4 @@
-package com.github.rosjava.android_remocons.listener;
+package com.github.rosjava.android_remocons.talker;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -16,15 +16,15 @@ import org.ros.node.NodeMainExecutor;
 
 import java.io.IOException;
 
-public class Listener extends RosAppActivity
+public class Talker extends RosAppActivity
 {
-    private Toast    lastToast;
+    private Toast lastToast;
     private ConnectedNode node;
     private RosTextView<std_msgs.String> rosTextView;
 
-    public Listener()
+    public Talker()
     {
-        super("Listener", "Listener");
+        super("Talker", "Talker");
     }
 
     /** Called when the activity is first created. */
@@ -38,8 +38,7 @@ public class Listener extends RosAppActivity
     }
 
     @Override
-    protected void init(NodeMainExecutor nodeMainExecutor)
-    {
+    protected void init(NodeMainExecutor nodeMainExecutor) {
         String chatterTopic = remaps.get(getString(R.string.chatter_topic));
         super.init(nodeMainExecutor);
 
@@ -49,10 +48,11 @@ public class Listener extends RosAppActivity
         rosTextView.setMessageToStringCallable(new MessageCallable<String, std_msgs.String>() {
             @Override
             public java.lang.String call(std_msgs.String message) {
-                Log.e("Listener", "received a message [" + message.getData() + "]");
+                Log.i("Talker", "received closed loop message [" + message.getData() + "]");
                 return message.getData();
             }
         });
+
         try {
             // Really horrible hack till I work out exactly the root cause and fix for
             // https://github.com/rosjava/android_remocons/issues/47
@@ -62,19 +62,22 @@ public class Listener extends RosAppActivity
             socket.close();
             NodeConfiguration nodeConfiguration =
                     NodeConfiguration.newPublic(local_network_address.getHostAddress(), getMasterUri());
+            Log.e("Talker", "master uri [" + getMasterUri() + "]");
+            org.ros.rosjava_tutorial_pubsub.Talker talker = new org.ros.rosjava_tutorial_pubsub.Talker(getMasterNameSpace().resolve(chatterTopic).toString());
+            nodeMainExecutor.execute(talker, nodeConfiguration);
             nodeMainExecutor.execute(rosTextView, nodeConfiguration);
         } catch(InterruptedException e) {
             // Thread interruption
+            Log.e("Talker", "sleep interrupted");
         } catch (IOException e) {
             // Socket problem
+            Log.e("Talker", "socket error trying to get networking information from the master uri");
         }
-
     }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
-        menu.add(0,0,0,R.string.stop_app);
+        menu.add(0,0,0,getString(R.string.stop_app));
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -89,24 +92,7 @@ public class Listener extends RosAppActivity
         }
         return true;
     }
-
-//    /**
-//     * Call Toast on UI thread.
-//     * @param message Message to show on toast.
-//     */
-//    private void showToast(final String message)
-//    {
-//        runOnUiThread(new Runnable()
-//        {
-//            @Override
-//            public void run() {
-//                if (lastToast != null)
-//                    lastToast.cancel();
-//
-//                lastToast = Toast.makeText(getBaseContext(), message, Toast.LENGTH_LONG);
-//                lastToast.show();
-//            }
-//        });
-//    }
-
 }
+
+
+
