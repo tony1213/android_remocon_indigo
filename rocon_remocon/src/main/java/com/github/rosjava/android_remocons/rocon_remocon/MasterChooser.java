@@ -346,7 +346,7 @@ public class MasterChooser extends Activity {
 			dialog.setTitle("Add a Master");
 			dialog.setOnKeyListener(new DialogKeyListener());
 			EditText uriField = (EditText) dialog.findViewById(R.id.uri_editor);
-			uriField.setText("http://192.168.2.157:11311/", TextView.BufferType.EDITABLE);
+			uriField.setText("http://192.168.2.168:11311/", TextView.BufferType.EDITABLE);
 			button = (Button) dialog.findViewById(R.id.enter_button);
 			button.setOnClickListener(new View.OnClickListener() {
 				public void onClick(View v) {
