@@ -151,7 +151,7 @@ public class ConcertChecker {
                 ParameterClient paramClient = new ParameterClient(
                         NodeIdentifier.forNameAndUri("/concert_checker", concertUri.toString()), concertUri);
                 String version = (String) paramClient.getParam(GraphName.of("/rosversion")).getResult();
-                Log.i("Remocon", "r ros master found [" + version + "]");
+                Log.e("Remocon", "[MasterChooser][MasterAdapter][MasterItem][ConcertChecker] ros master version:"+version);
 
                 NodeMainExecutorService nodeMainExecutorService = new NodeMainExecutorService();
                 NodeConfiguration nodeConfiguration = NodeConfiguration.newPublic(
@@ -166,13 +166,13 @@ public class ConcertChecker {
                         nodeConfiguration.setNodeName("master_info_node")
                 );
                 masterInfo.waitForResponse(); // MasterInfoExc. on timeout, listener or ros runtime errors
-                Log.i("Remocon", "master info found");
+                Log.e("Remocon", "[MasterChooser][MasterAdapter][MasterItem][ConcertChecker] master info found");
                 nodeMainExecutorService.execute(
                         roconInteractions,
                         nodeConfiguration.setNodeName("rocon_interactions_node")
                 );
                 roconInteractions.waitForResponse(); // InteractionsExc. on timeout, service or ros runtime errors
-                Log.i("Remocon", "rocon interactions found");
+                Log.e("Remocon", "[MasterChooser][MasterAdapter][MasterItem][ConcertChecker] rocon interactions found");
 
                 // configure concert description
                 Date timeLastSeen = new Date();
@@ -192,21 +192,21 @@ public class ConcertChecker {
                 nodeMainExecutorService.shutdownNodeMain(roconInteractions);
                 return;
             } catch (XmlRpcTimeoutException e) {
-                Log.w("Remocon", "timed out trying to connect to the master [" + concertUri + "][" + e.toString() + "]");
-                failureCallback.handleFailure("Timed out trying to connect to the master. Is your network interface up?");
+                Log.e("Remocon", "[MasterChooser][MasterAdapter][MasterItem][ConcertChecker] timed out trying to connect to the master [" + concertUri + "][" + e.toString() + "]");
+                failureCallback.handleFailure("[MasterChooser][MasterAdapter][MasterItem][ConcertChecker] Timed out trying to connect to the master. Is your network interface up?");
             } catch (RuntimeException e) {
                 // thrown if there is no master at that url (from java.net.ConnectException)
-                Log.w("Remocon", "connection refused. Is the master running? [" + concertUri + "][" + e.toString() + "]");
-                failureCallback.handleFailure("Connection refused. Is the master running?");
+                Log.e("Remocon", "[MasterChooser][MasterAdapter][MasterItem][ConcertChecker] connection refused. Is the master running? [" + concertUri + "][" + e.toString() + "]");
+                failureCallback.handleFailure("[MasterChooser][MasterAdapter][MasterItem][ConcertChecker] Connection refused. Is the master running?");
             } catch (InteractionsException e) {
-                Log.w("Remocon", "rocon interactions unavailable [" + concertUri + "][" + e.toString() + "]");
-                failureCallback.handleFailure("Rocon interactions unavailable [" + e.toString() + "]");
+                Log.e("Remocon", "[MasterChooser][MasterAdapter][MasterItem][ConcertChecker] rocon interactions unavailable [" + concertUri + "][" + e.toString() + "]");
+                failureCallback.handleFailure("[MasterChooser][MasterAdapter][MasterItem][ConcertChecker] Rocon interactions unavailable [" + e.toString() + "]");
             } catch (MasterInfoException e) {
-                Log.w("Remocon", "master info unavailable [" + concertUri + "][" + e.toString() + "]");
-                failureCallback.handleFailure("Rocon master info unavailable. Is your ROS_IP set? Is the rocon_master_info node running?");
+                Log.w("Remocon", "[MasterChooser][MasterAdapter][MasterItem][ConcertChecker] master info unavailable [" + concertUri + "][" + e.toString() + "]");
+                failureCallback.handleFailure("[MasterChooser][MasterAdapter][MasterItem][ConcertChecker] Rocon master info unavailable. Is your ROS_IP set? Is the rocon_master_info node running?");
             } catch (Throwable e) {
-                Log.w("Remocon", "exception while creating node in concert checker for URI " + concertUri, e);
-                failureCallback.handleFailure("unknown exception in the rocon checker [" + e.toString() + "]");
+                Log.w("Remocon", "[MasterChooser][MasterAdapter][MasterItem][ConcertChecker] exception while creating node in concert checker for URI " + concertUri, e);
+                failureCallback.handleFailure("[MasterChooser][MasterAdapter][MasterItem][ConcertChecker] unknown exception in the rocon checker [" + e.toString() + "]");
             }
         }
     }

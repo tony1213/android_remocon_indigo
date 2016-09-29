@@ -119,7 +119,7 @@ public class MasterChooser extends Activity {
 		if (c.getCount() > 0) {
 			c.moveToFirst();
 			str = c.getString(c.getColumnIndex(Database.TABLE_COLUMN));
-			Log.i("Remocon", "master chooser found a rocon master: " + str);
+			Log.i("Remocon", "[MasterChooser] master chooser found a rocon master: " + str);
 		}
 		if (str != null) {
 			masters = (List<RoconDescription>) yaml.load(str);
@@ -129,7 +129,7 @@ public class MasterChooser extends Activity {
 	}
 
 	public void writeMasterList() {
-		Log.i("Remocon", "master chooser saving rocon master details...");
+		Log.e("Remocon", "[MasterChooser] writeMasterList()");
 		String str = null;
 		final List<RoconDescription> tmp = masters; // Avoid race conditions
         if (tmp != null) {
@@ -144,11 +144,13 @@ public class MasterChooser extends Activity {
 	}
 
 	private void refresh() {
+		Log.e("Remocon","[MasterChooser] refresh()");
 		readMasterList();
 		updateListView();
 	}
 
 	private void updateListView() {
+		Log.e("Remocon","[MasterChooser]  updateListview()");
 		setContentView(R.layout.master_chooser);
 		ListView listview = (ListView) findViewById(R.id.master_list);
 		listview.setAdapter(new MasterAdapter(this, masters));
@@ -158,6 +160,7 @@ public class MasterChooser extends Activity {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View v,
 					int position, long id) {
+				Log.e("Remocon","[MasterChooser]  onItemClick");
 				choose(position);
 			}
 		});
@@ -172,6 +175,7 @@ public class MasterChooser extends Activity {
      * @param position
      */
 	private void choose(int position) {
+		Log.e("Remocon","[MasterChooser]  method:choose("+position+")");
 		RoconDescription concert = masters.get(position);
 		if (concert == null || concert.getConnectionStatus() == null
 				|| concert.getConnectionStatus().equals(RoconDescription.ERROR)) {
@@ -274,6 +278,7 @@ public class MasterChooser extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		Log.e("Remocon","[MasterChooser] onCreate()");
 		readMasterList();
 		updateListView();
 
@@ -283,14 +288,17 @@ public class MasterChooser extends Activity {
 	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         // Sub-activity to gather concert connection data completed: can be QR code or NFC tag scan
         // TODO: cannot unify both calls?
+		Log.e("Remocon","[MasterChooser] onActivityResult");
 
         if (resultCode == RESULT_CANCELED) {
+			Log.e("Remocon","[MasterChooser] onActivityResult resultCode == RESULT_CANCELED");
             Toast.makeText(this, "Cancelled", Toast.LENGTH_SHORT).show();
             return;
         }
 
         Map<String, Object> data = null;
         if (requestCode == QR_CODE_SCAN_REQUEST_CODE) {
+			Log.e("Remocon","[MasterChooser] onActivityResult resultCode == QR_CODE_SCAN_REQUEST_CODE");
             IntentResult scanResult = IntentIntegrator.parseActivityResult(
                     requestCode, resultCode, intent);
             if (scanResult != null && scanResult.getContents() != null) {
@@ -300,6 +308,7 @@ public class MasterChooser extends Activity {
             }
         }
         else if (requestCode == NFC_TAG_SCAN_REQUEST_CODE && resultCode == RESULT_OK) {
+			Log.e("Remocon","[MasterChooser] onActivityResult resultCode == NFC_TAG_SCAN_REQUEST_CODE");
             if (intent.hasExtra("tag_data")) {
                 data = (Map<String, Object>) intent.getExtras().getSerializable("tag_data");
             }
@@ -324,19 +333,20 @@ public class MasterChooser extends Activity {
 
 	@Override
 	protected Dialog onCreateDialog(int id) {
+		Log.e("Remocon","[MasterChooser] Dialog onCreateDialog()");
 		readMasterList();
 		final Dialog dialog;
 		Button button;
 		AlertDialog.Builder builder;
 		switch (id) {
 		case ADD_URI_DIALOG_ID:
+			Log.e("Remocon","[MasterChooser] Dialog onCreateDialog() First Connection");
 			dialog = new Dialog(this);
 			dialog.setContentView(R.layout.add_uri_dialog);
 			dialog.setTitle("Add a Master");
 			dialog.setOnKeyListener(new DialogKeyListener());
 			EditText uriField = (EditText) dialog.findViewById(R.id.uri_editor);
-			uriField.setText("http://localhost:11311/",
-					TextView.BufferType.EDITABLE);
+			uriField.setText("http://192.168.2.157:11311/", TextView.BufferType.EDITABLE);
 			button = (Button) dialog.findViewById(R.id.enter_button);
 			button.setOnClickListener(new View.OnClickListener() {
 				public void onClick(View v) {
@@ -457,6 +467,7 @@ public class MasterChooser extends Activity {
 		public void onClick(DialogInterface dialog, int clicked) {
 			switch (clicked) {
 			case DialogInterface.BUTTON_POSITIVE:
+				Log.e("Remocon","按钮SELECT点击");
 				SparseBooleanArray positions = listView
 						.getCheckedItemPositions();
 
@@ -469,6 +480,7 @@ public class MasterChooser extends Activity {
 				removeDialog(ADD_DELETION_DIALOG_ID);
 				break;
 			case DialogInterface.BUTTON_NEGATIVE:
+				Log.e("Remocon","按钮Cancel点击");
 				removeDialog(ADD_DELETION_DIALOG_ID);
 				break;
 			}
@@ -481,6 +493,7 @@ public class MasterChooser extends Activity {
           resolvable zeroconf address looking for the master. Instead, we just grab
           the first ipv4 address and totally ignore the possibility of an ipv6 master.
          */
+		Log.e("Remocon","[MasterChooser] enterMasterInfo(DiscoveredService discovered_service)");
         String newMasterUri = null;
         if ( discovered_service.ipv4_addresses.size() != 0 ) {
             newMasterUri = "http://" + discovered_service.ipv4_addresses.get(0) + ":"
@@ -503,6 +516,9 @@ public class MasterChooser extends Activity {
 	}
 
 	public void enterMasterInfo(Dialog dialog) {
+
+		Log.e("Remocon","[MasterChooser] enterMasterInfo(Dialog dialog)");
+
 		EditText uriField = (EditText) dialog.findViewById(R.id.uri_editor);
 		String newMasterUri = uriField.getText().toString();
 		EditText wifiNameField = (EditText) dialog
@@ -547,6 +563,7 @@ public class MasterChooser extends Activity {
 	}
 
 	public void addMasterClicked(View view) {
+		Log.e("Remocon","[MasterChooser] Click Button ADD A MASTER");
 		showDialog(ADD_URI_DIALOG_ID);
 	}
 

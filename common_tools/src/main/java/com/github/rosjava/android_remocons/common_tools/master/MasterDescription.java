@@ -110,7 +110,7 @@ public class MasterDescription implements java.io.Serializable {
         timeLastSeen = other.timeLastSeen;
     }
 
-    public MasterId getMasterId() {
+    public MasterId getMasterId(){
         return masterId;
     }
 

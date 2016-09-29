@@ -127,6 +127,7 @@ public class Remocon extends RosActivity {
 
     public Remocon() {
         super("Remocon", "Remocon");
+        Log.e("Remocon","构造方法－－－－－>1");
         availableAppsCacheTime = 0;
 		availableAppsCache = new ArrayList<Interaction>();
         statusPublisher = StatusPublisher.getInstance();
@@ -182,7 +183,7 @@ public class Remocon extends RosActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.i("[Remocon]", "Oncreate");
+        Log.e("Remocon", "onCreate------->2");
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                              WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -496,6 +497,7 @@ public class Remocon extends RosActivity {
      */
 	@Override
 	public void startMasterChooser() {
+        Log.e("Remocon","startMasterChooser()");
 		if (!fromApplication && !fromNfcLauncher) {
 			super.startActivityForResult(new Intent(this,
 					MasterChooser.class),
@@ -612,6 +614,7 @@ public class Remocon extends RosActivity {
      * Choose a new role and get the apps associated to the new roll.
      */
     public void changeRoleClicked(View view) {
+        Log.e("Remocon","Button Click (Add A Master)");
         chooseRole();
     }
 
@@ -621,6 +624,7 @@ public class Remocon extends RosActivity {
      * or the button provided in the Remocon activity.
      */
     public void leaveConcertClicked(View view) {
+        Log.e("Remocon","method:leaveConcertClicked(View view)");
         availableAppsCache.clear();
         startActivityForResult(new Intent(this, MasterChooser.class),
                 CONCERT_MASTER_CHOOSER_REQUEST_CODE);
